@@ -1,0 +1,23 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/ticketing_db?useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8
+    username: root
+    password: your_password
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+        show_sql: true
+        default_batch_fetch_size: 100
+    open-in-view: false
+
+jwt:
+  secret: c3VwZXItc2VjcmV0LWtleS13aXRoLWF0LWxlYXN0LTMyLWJ5dGVzLWxvbmc=
+  expiration: 86400000 # 24시간 (ms 단위)
