@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>예매 대기열</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; margin-top: 100px; }
+        .queue-box { border: 2px solid #333; padding: 30px; display: inline-block; border-radius: 10px; }
+        .rank { font-size: 3em; color: #dc3545; font-weight: bold; }
+    </style>
+</head>
+<body>
+<div class="queue-box">
+    <h2>접속 대기 중입니다</h2>
+    <p>잠시만 기다려주시면 예매 페이지로 자동으로 이동합니다.</p>
+    <div>내 앞 대기 인원</div>
+    <div class="rank" id="rank">- 명</div>
+    <p>예상 대기 시간: <span id="waitTime">-</span>초</p>
+</div>
+
+<script th:inline="javascript">
+    //const performanceId = [[${performanceId}]];
+    const performanceId = /*[[${performanceId}]]*/ 0;
+    const token = localStorage.getItem('accessToken');
+
+    if (!token) {
+        alert('로그인이 필요합니다.');
+        window.location.href = '/view/login';
+    }
+
+    // 1. 대기열 등록
+    async function registerQueue() {
+        await fetch('/api/queue/register', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ performanceId: performanceId })
+        });
+        
+        // 2. 주기적으로 순번 확인 (1초 간격)
+        checkQueueStatus();
+        setInterval(checkQueueStatus, 1000);
+    }
+
+    // 2. 내 순번 조회 (Polling)
+    async function checkQueueStatus() {
+        const response = await fetch(`/api/queue/status?performanceId=${performanceId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            document.getElementById('rank').innerText = data.rank + ' 명';
+            document.getElementById('waitTime').innerText = data.expectedWaitTimeSeconds;
+
+            // 순번이 0 이하로 떨어지거나 진입 허용 시 예매 화면으로 이동
+            if (data.rank === 0) {
+                alert('예매 페이지로 이동합니다.');
+                window.location.href = `/view/reservation/${performanceId}`;
+            }
+        }
+    }
+
+    registerQueue();
+</script>
+</body>
+</html>

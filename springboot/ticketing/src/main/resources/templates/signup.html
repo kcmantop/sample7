@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>회원가입 - 티켓 예매 시스템</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 50px; }
+        .container { width: 300px; margin: 0 auto; }
+        input { width: 100%; padding: 8px; margin: 8px 0; box-sizing: border-box; }
+        button { width: 100%; padding: 10px; background-color: #28a745; color: white; border: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>회원가입</h2>
+    <input type="email" id="email" placeholder="이메일 입력" required>
+    <input type="password" id="password" placeholder="비밀번호 입력" required>
+    <input type="text" id="name" placeholder="이름 입력" required>
+    <button onclick="signup()">회원가입</button>
+    <p><a href="/view/login">로그인 하러가기</a></p>
+</div>
+
+<script>
+    async function signup() {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const name = document.getElementById('name').value;
+
+        const response = await fetch('/api/auth/signup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password, name })
+        });
+
+        if (response.ok) {
+            alert('회원가입이 완료되었습니다.');
+            window.location.href = '/view/login';
+        } else {
+            alert('회원가입 실패!');
+        }
+    }
+</script>
+</body>
+</html>

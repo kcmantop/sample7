@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>좌석 선택 및 예매</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 30px; text-align: center; }
+        .seat-grid { display: grid; grid-template-columns: repeat(5, 80px); gap: 10px; justify-content: center; margin-top: 20px; }
+        .seat-btn { width: 80px; height: 50px; font-weight: bold; cursor: pointer; border: 1px solid #ccc; border-radius: 5px; }
+        .available { background-color: #28a745; color: white; }
+        .reserved { background-color: #6c757d; color: white; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+<h2>공연 좌석 예매</h2>
+<p>원하시는 좌석을 선택해 주세요.</p>
+
+<div class="seat-grid" id="seatGrid">
+    <!-- 예시 좌석 데이터 (1~10번) -->
+    <button class="seat-btn available" onclick="reserveSeat(1)">A-1</button>
+    <button class="seat-btn available" onclick="reserveSeat(2)">A-2</button>
+    <button class="seat-btn available" onclick="reserveSeat(3)">A-3</button>
+    <button class="seat-btn available" onclick="reserveSeat(4)">A-4</button>
+    <button class="seat-btn available" onclick="reserveSeat(5)">A-5</button>
+</div>
+
+<script th:inline="javascript">
+    const token = localStorage.getItem('accessToken');
+
+    async function reserveSeat(seatId) {
+        if (!confirm(`${seatId}번 좌석을 예매하시겠습니까?`)) return;
+
+        const response = await fetch('/api/reservations', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ seatId: seatId })
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            alert(`예매 성공! (예약 번호: ${data.reservationId}, 좌석: ${data.seatNumber})`);
+            location.reload();
+        } else {
+            const errorMsg = await response.text();
+            alert(`예매 실패: ${errorMsg}`);
+        }
+    }
+</script>
+</body>
+</html>
