@@ -25,6 +25,11 @@ public class Reservation {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "seat_id", nullable = false, unique = true)
     private Seat seat;
+    
+    // status 필드 추가
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private ReservationStatus status;
 
     @Column(name = "reserved_at", nullable = false, updatable = false)
     private LocalDateTime reservedAt;
@@ -38,12 +43,18 @@ public class Reservation {
     @PrePersist
     protected void onCreate() {
         this.reservedAt = LocalDateTime.now();
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+        if (this.status == null) {
+            this.status = ReservationStatus.CONFIRMED; // 기본 상태 지정
+        }
     }
 
     @Builder
-    public Reservation(Users user, Seat seat) {
+    public Reservation(Users user, Seat seat, ReservationStatus status) {
         this.user = user;
         this.seat = seat;
+        this.status = (status != null) ? status : ReservationStatus.CONFIRMED;
     }
     
     public Reservation(Long userId, Seat seat) {

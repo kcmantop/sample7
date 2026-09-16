@@ -21,6 +21,11 @@ public class Seat {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "performance_id")
     private Performance performance;
+    
+    @Version // 낙관적 락을 위한 버전 관리
+    private Long version;
+
+    private boolean isReserved;
 
     //@Column(name="performance_id", nullable=false)
     //private Long performanceId;
@@ -68,6 +73,7 @@ public class Seat {
             throw new IllegalStateException("이미 예매 완료된 좌석입니다.");
         }
         this.status = SeatStatus.RESERVED;
+        this.isReserved = true;
     }
 }
 
