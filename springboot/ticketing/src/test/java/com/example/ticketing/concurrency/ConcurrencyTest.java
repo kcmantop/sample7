@@ -47,7 +47,7 @@ class ConcurrencyTest {
         for (int i = 0; i < threadCount; i++) {
             executorService.submit(() -> {
                 try {
-                    reservationFacade.reserveSeat(seat.getId(), user);
+                    reservationFacade.reserve(seat.getId(), user);
                     successCount.incrementAndGet();
                 } catch (Exception e) {
                     failCount.incrementAndGet();

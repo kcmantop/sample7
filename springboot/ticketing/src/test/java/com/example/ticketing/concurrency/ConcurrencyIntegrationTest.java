@@ -117,7 +117,7 @@ class ConcurrencyIntegrationTest {
         for (int i = 0; i < totalRequests; i++) {
             executorService.submit(() -> {
                 try {
-                    reservationFacade.reserveSeat(targetSeatId, testUser);
+                    reservationFacade.reserve(targetSeatId, testUser);
                     //reservationService.reserveSeat(targetSeatId, testUser);
                     
                     successCount.incrementAndGet(); // 성공 카운트

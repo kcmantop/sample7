@@ -26,6 +26,16 @@ public interface SeatRepository extends JpaRepository<Seat, Long> {
     // Fetch Join을 사용하여 N+1 문제 방지
     @Query("SELECT s FROM Seat s JOIN FETCH s.performance WHERE s.performance.id = :performanceId AND s.status = 'AVAILABLE'")
     List<Seat> findAvailableSeatsByPerformanceId(@Param("performanceId") Long performanceId);
+    
+    // 1. 비관적 쓰기 락 (SELECT ... FOR UPDATE)
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT s FROM Seat s WHERE s.id = :id")
+    Optional<Seat> findByIdWithPessimisticLock(@Param("id") Long id);
+
+    // 2. 낙관적 락 (조회 시점에는 락을 걸지 않음)
+    @Lock(LockModeType.OPTIMISTIC)
+    @Query("SELECT s FROM Seat s WHERE s.id = :id")
+    Optional<Seat> findByIdWithOptimisticLock(@Param("id") Long id);
 }
 
 

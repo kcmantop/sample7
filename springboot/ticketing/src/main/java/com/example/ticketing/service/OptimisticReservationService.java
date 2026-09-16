@@ -14,20 +14,20 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class OptimisticReservationService {
-
     private final SeatRepository seatRepository;
     private final ReservationRepository reservationRepository;
 
     @Transactional
-    public void reserveSeat(Long seatId, Users user) {
-        Seat seat = seatRepository.findById(seatId)
-                .orElseThrow(() -> new IllegalArgumentException("좌석이 존재하지 않습니다."));
+    public void reserve(Long seatId, Users user) {
+        Seat seat = seatRepository.findByIdWithOptimisticLock(seatId)
+                .orElseThrow(() -> new IllegalArgumentException("좌석이 없습니다."));
+        
+        seat.reserve();
 
-        if (seat.isReserved()) {
-            throw new IllegalStateException("이미 예약된 좌석입니다.");
-        }
-
-        seat.reserve(); // Commit 시점에 version 비교 후 다르면 Exception 발생
-        reservationRepository.save(new Reservation(user, seat, ReservationStatus.CONFIRMED));
+        Reservation reservation = Reservation.builder()
+                .seat(seat)
+                .user(user)
+                .build();
+        reservationRepository.save(reservation);
     }
 }
