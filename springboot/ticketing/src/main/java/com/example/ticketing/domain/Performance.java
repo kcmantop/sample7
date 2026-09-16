@@ -1,10 +1,17 @@
 package com.example.ticketing.domain;
 
-import jakarta.persistence.*;
+import java.time.LocalDateTime;
+
+import com.example.ticketing.domain.Seat.SeatStatus;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -19,7 +26,7 @@ public class Performance {
     private String title;
     
     @Column(nullable=false)
-    private String descriptiont;
+    private String description;
 
     @Column(name="start_time", nullable=false)
     private LocalDateTime startTime;
@@ -33,12 +40,13 @@ public class Performance {
     @Column(name="updated_at", nullable=false)
     private LocalDateTime updatedAt;
 
-	public Performance(Long id, String title, String descriptiont, LocalDateTime startTime, LocalDateTime endTime,
+    @Builder
+	public Performance(Long id, String title, String description, LocalDateTime startTime, LocalDateTime endTime,
 			LocalDateTime createdAt, LocalDateTime updatedAt) {
 		super();
 		this.id = id;
 		this.title = title;
-		this.descriptiont = descriptiont;
+		this.description = description;
 		this.startTime = startTime;
 		this.endTime = endTime;
 		this.createdAt = createdAt;

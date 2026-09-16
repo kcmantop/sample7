@@ -34,6 +34,9 @@ public class Users {
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+    
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
 
     @PrePersist
     protected void onCreate() {
@@ -41,11 +44,13 @@ public class Users {
     }
 
     @Builder
-    public Users(String email, String password, String name, UserRole role) {
+    public Users(String email, String password, String name, UserRole role, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.email = email;
         this.password = password;
         this.name = name;
         this.role = role != null ? role : UserRole.ROLE_USER;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
     }
 
     // 비즈니스 로직: 회원 정보 수정 등

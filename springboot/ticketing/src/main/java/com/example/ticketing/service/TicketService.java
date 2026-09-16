@@ -25,6 +25,8 @@ public class TicketService {
     private final RedissonClient redissonClient;
 
     public Long reserveTicketWithLock(Long userId, Long seatId) {
+    	System.out.println("---21");
+    	
         String lockKey = "LOCK:SEAT:" + seatId;
         RLock lock = redissonClient.getLock(lockKey);
 
@@ -48,6 +50,8 @@ public class TicketService {
 
     @Transactional
     public Long reserveTransaction(Long userId, Long seatId) {
+    	System.out.println("---22");
+    	
         Seat seat = seatRepository.findById(seatId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 좌석입니다."));
 

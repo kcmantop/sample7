@@ -3,6 +3,7 @@ package com.example.ticketing.domain;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -56,6 +57,7 @@ public class Seat {
 //        this.status = SeatStatus.AVAILABLE;
 //    }
     
+    @Builder
 	public Seat(Long id, Performance performance, String seatNumber, Long price, SeatStatus status,
 			LocalDateTime createdAt, LocalDateTime updatedAt) {
 		super();
