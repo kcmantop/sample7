@@ -13,12 +13,12 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.orm.ObjectOptimisticLockingFailureException;
 
 import com.example.ticketing.domain.Performance;
 import com.example.ticketing.domain.Seat;
 import com.example.ticketing.domain.Seat.SeatStatus;
 import com.example.ticketing.domain.Users;
+import com.example.ticketing.facade.OptimisticLockReservationFacade;
 import com.example.ticketing.facade.RedissonLockReservationFacade;
 import com.example.ticketing.repository.PerformanceRepository;
 import com.example.ticketing.repository.ReservationRepository;
@@ -42,16 +42,21 @@ class LockConcurrencyTest {
     
     @Autowired
     private PerformanceRepository performanceRepository;
-
+    
+    @Autowired
+    OptimisticLockReservationFacade optimisticLockFacade;
+    
     @BeforeEach
     void setUp() {        
-    	System.out.println("---1");
+    	System.out.println("---51 LocalDateTime.now())" + LocalDateTime.now());
     	
         // 1. Foreign Key 참조 관계 역순으로 삭제
         reservationRepository.deleteAllInBatch(); // 👈 가장 먼저 지워야 함!
         seatRepository.deleteAllInBatch();
         performanceRepository.deleteAllInBatch();
         usersRepository.deleteAllInBatch();
+        
+        System.out.println("---52");
         
     	// 1. Users 객체 생성 및 DB 저장 (email 필드 필수 지정)
         Users user = Users.builder()
@@ -61,7 +66,11 @@ class LockConcurrencyTest {
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();        
+        
+        System.out.println("---53");
         usersRepository.save(user);
+        
+        System.out.println("---54 userCreatedAt() " + user.getCreatedAt());
         
     	// 1. Performance(공연) 객체 생성 및 DB 저장
         Performance performance = Performance.builder()
@@ -94,7 +103,7 @@ class LockConcurrencyTest {
 
     @Test
     @DisplayName("1. 비관적 락 동시성 테스트 (Users 포함)")
-    void pessimisticLock_test() throws InterruptedException {
+    void pessimisticLock_test() throws InterruptedException {   	
         int threadCount = 100;
         ExecutorService executorService = Executors.newFixedThreadPool(32);
         CountDownLatch latch = new CountDownLatch(threadCount);
@@ -125,24 +134,34 @@ class LockConcurrencyTest {
     }
 
     @Test
-    @DisplayName("2. 낙관적 락 동시성 테스트 (Users 포함)")
+    @DisplayName("2. 낙관적 락 동시성 테스트")
     void optimisticLock_test() throws InterruptedException {
+    	System.out.println("---55");
+    	
         int threadCount = 100;
         ExecutorService executorService = Executors.newFixedThreadPool(32);
         CountDownLatch latch = new CountDownLatch(threadCount);
-
+        
         AtomicInteger successCount = new AtomicInteger();
-        AtomicInteger optimisticExceptionCount = new AtomicInteger();
+        AtomicInteger failCount = new AtomicInteger();
+        
+        System.out.println("---56");
 
         for (int i = 0; i < threadCount; i++) {
             executorService.submit(() -> {
                 try {
-                    optimisticService.reserve(targetSeatId, testUser);
+                	System.out.println("---57");
+                	
+                    // 파사드 사용 시
+                    optimisticLockFacade.reserve(targetSeatId, testUser);
                     successCount.incrementAndGet();
-                } catch (ObjectOptimisticLockingFailureException e) {
-                    optimisticExceptionCount.incrementAndGet();
+                    
+                    System.out.println("---58");
+                    
                 } catch (Exception e) {
-                    // 기타 비즈니스 예외 처리
+                	//e.printStackTrace();
+                	
+                    failCount.incrementAndGet();
                 } finally {
                     latch.countDown();
                 }
@@ -150,8 +169,12 @@ class LockConcurrencyTest {
         }
         latch.await();
 
-        assertThat(successCount.get()).isEqualTo(1);
-        assertThat(optimisticExceptionCount.get()).isGreaterThan(0);
+        // 1번만 성공하고 나머지 성공 횟수 및 예약 건수 검증
+        //assertThat(successCount.get()).isEqualTo(1);
+        assertThat(successCount.get())
+        .as("성공한 예약 건수는 정확히 1이어야 합니다 (실제 성공: %d, 실패: %d)", 
+            successCount.get(), failCount.get())
+        .isEqualTo(1);
         assertThat(reservationRepository.count()).isEqualTo(1);
     }
 

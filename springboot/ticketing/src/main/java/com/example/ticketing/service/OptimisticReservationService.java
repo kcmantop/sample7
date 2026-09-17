@@ -19,10 +19,16 @@ public class OptimisticReservationService {
 
     @Transactional
     public void reserve(Long seatId, Users user) {
+    	System.out.println("---61");
+    	
         Seat seat = seatRepository.findByIdWithOptimisticLock(seatId)
                 .orElseThrow(() -> new IllegalArgumentException("좌석이 없습니다."));
         
+        System.out.println("---62");
+        
         seat.reserve();
+        
+        System.out.println("---63");
 
         Reservation reservation = Reservation.builder()
                 .seat(seat)
