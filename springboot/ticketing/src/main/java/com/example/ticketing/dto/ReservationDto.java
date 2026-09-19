@@ -11,6 +11,7 @@ public class ReservationDto {
     @Getter
     @NoArgsConstructor
     public static class CreateRequest {
+    	private Long userId;  // jmeter 테스트를 위해서 임시로 추가, 테스트후 제거 
         private Long seatId;
     }
 

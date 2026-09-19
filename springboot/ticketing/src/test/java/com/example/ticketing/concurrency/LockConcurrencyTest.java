@@ -153,7 +153,8 @@ class LockConcurrencyTest {
                 	System.out.println("---57");
                 	
                     // 파사드 사용 시
-                    optimisticLockFacade.reserve(targetSeatId, testUser);
+                    //optimisticLockFacade.reserve(targetSeatId, testUser);
+                	optimisticService.reserve(targetSeatId, testUser);
                     successCount.incrementAndGet();
                     
                     System.out.println("---58");

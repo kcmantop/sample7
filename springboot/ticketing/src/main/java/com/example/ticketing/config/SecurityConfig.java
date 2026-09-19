@@ -29,22 +29,43 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-
+    
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(AbstractHttpConfigurer::disable)
-            .formLogin(AbstractHttpConfigurer::disable)
-            .httpBasic(AbstractHttpConfigurer::disable)
+            // 1. API 방식 요청을 위해 CSRF 비활성화 (필수)
+            .csrf(csrf -> csrf.disable()) 
+            .formLogin(form -> form.disable())
+            .httpBasic(basic -> basic.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            
             .authorizeHttpRequests(auth -> auth
-            	.requestMatchers("/**").permitAll()
-                //.requestMatchers("/api/auth/**").permitAll()
-                //.requestMatchers("/api/admin/**").hasRole("ADMIN")
+                // 모든 요청 허용 설정 테스트
+                .requestMatchers("/**").permitAll() 
                 .anyRequest().authenticated()
             )
             .addFilterBefore(new JwtAuthenticationFilter(jwtProvider), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
+
+//    @Bean
+//    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+//        http
+//            .csrf(AbstractHttpConfigurer::disable)
+//            .formLogin(AbstractHttpConfigurer::disable)
+//            .httpBasic(AbstractHttpConfigurer::disable)
+//            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+//            .authorizeHttpRequests(auth -> auth
+//            	.requestMatchers("/api/auth/**", "/view/**", "/js/**", "/css/**").permitAll() // 로그인, 회원가입, 정적 자원은 허용
+//            	.requestMatchers("/api/admin/**").hasRole("ADMIN")
+//            	//.requestMatchers("/**").permitAll()
+//                //.requestMatchers("/api/auth/**").permitAll()
+//                //.requestMatchers("/api/admin/**").hasRole("ADMIN")
+//                .anyRequest().authenticated()
+//            )
+//            .addFilterBefore(new JwtAuthenticationFilter(jwtProvider), UsernamePasswordAuthenticationFilter.class);
+//
+//        return http.build();
+//    }
 }

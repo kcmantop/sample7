@@ -6,6 +6,7 @@ import com.example.ticketing.domain.Reservation;
 import com.example.ticketing.domain.ReservationStatus;
 import com.example.ticketing.domain.Seat;
 import com.example.ticketing.domain.Users;
+import com.example.ticketing.dto.ReservationDto;
 import com.example.ticketing.repository.ReservationRepository;
 import com.example.ticketing.repository.SeatRepository;
 
@@ -18,7 +19,7 @@ public class OptimisticReservationService {
     private final ReservationRepository reservationRepository;
 
     @Transactional
-    public void reserve(Long seatId, Users user) {
+    public ReservationDto.Response reserve(Long seatId, Users user) {
     	System.out.println("---61");
     	
         Seat seat = seatRepository.findByIdWithOptimisticLock(seatId)
@@ -34,6 +35,16 @@ public class OptimisticReservationService {
                 .seat(seat)
                 .user(user)
                 .build();
-        reservationRepository.save(reservation);
+        Reservation savedReservation = reservationRepository.save(reservation);
+        
+        // 응답 DTO 반환
+        return ReservationDto.Response.builder()
+                .reservationId(savedReservation.getId())
+                .userId(user.getId())
+                .seatId(seat.getId())
+                .seatNumber(seat.getSeatNumber())
+                .price(seat.getPrice())
+                .reservedAt(savedReservation.getReservedAt())
+                .build();
     }
 }

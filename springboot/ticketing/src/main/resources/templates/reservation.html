@@ -15,9 +15,9 @@
 <h2>공연 좌석 예매</h2>
 <p>원하시는 좌석을 선택해 주세요.</p>
 
-<div class="seat-grid" id="seatGrid">
+<div class="seat-grid" id="seatGrid">	
     <!-- 예시 좌석 데이터 (1~10번) -->
-    <button class="seat-btn available" onclick="reserveSeat(1)">A-1</button>
+    <button class="seat-btn available" onclick="reserveSeat(50)">A-1</button>
     <button class="seat-btn available" onclick="reserveSeat(2)">A-2</button>
     <button class="seat-btn available" onclick="reserveSeat(3)">A-3</button>
     <button class="seat-btn available" onclick="reserveSeat(4)">A-4</button>
@@ -26,27 +26,36 @@
 
 <script th:inline="javascript">
     const token = localStorage.getItem('accessToken');
+    console.log('[DEBUG] Loaded Token:', token); // 토큰 값 출력 확인
 
     async function reserveSeat(seatId) {
+        // 1. 토큰이 없는 경우 사전 차단
+        if (!token) {
+            alert('로그인이 필요한 서비스입니다.');
+            window.location.href = '/view/login'; // 로그인 페이지 경로
+            return;
+        }
+
         if (!confirm(`${seatId}번 좌석을 예매하시겠습니까?`)) return;
 
         const response = await fetch('/api/reservations', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Authorization': `Bearer ${token}` // Bearer 한 칸 띄우기 필수
             },
             body: JSON.stringify({ seatId: seatId })
         });
 
-        if (response.ok) {
+        //if (response.ok) {
             const data = await response.json();
-            alert(`예매 성공! (예약 번호: ${data.reservationId}, 좌석: ${data.seatNumber})`);
+            alert(`예매 성공! (예약 번호: ${data.reservationId})`);
             location.reload();
-        } else {
-            const errorMsg = await response.text();
-            alert(`예매 실패: ${errorMsg}`);
-        }
+        //} else {
+        //    const errorMsg = await response.text();
+        //    console.log('---7', errorMsg);
+        //    alert(`예매 실패: ${errorMsg}`);
+        //}
     }
 </script>
 </body>

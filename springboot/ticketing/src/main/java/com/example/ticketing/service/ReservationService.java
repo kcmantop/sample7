@@ -30,14 +30,22 @@ public class ReservationService {
     public ReservationDto.Response reserveSeat(Long userId, ReservationDto.CreateRequest request) {
     	System.out.println("---31");
     	
-        // 1. 회원 정보 조회
+        // 회원 정보 조회
         Users user = usersRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
-
-        // 2. 비관적 락(Pessimistic Lock)을 적용하여 좌석 조회
-        //    동시 요청 시 다른 트랜잭션은 락이 해제될 때까지 대기
-        Seat seat = seatRepository.findByIdWithLock(request.getSeatId())
+        
+        // 1.비관적 락(Pessimistic Lock), 3.Redisson Lock 일겨우 호출 
+        Seat seat = seatRepository.findByIdWithPessimisticLock(request.getSeatId())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 좌석입니다."));
+        
+        // 2.낙관적 락(Optimistic Lock)
+        //Seat seat = seatRepository.findByIdWithOptimisticLock(request.getSeatId())
+        //        .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 좌석입니다."));
+
+        // 비관적 락(Pessimistic Lock)을 적용하여 좌석 조회
+        //    동시 요청 시 다른 트랜잭션은 락이 해제될 때까지 대기
+        //Seat seat = seatRepository.findByIdWithLock(request.getSeatId())
+        //        .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 좌석입니다."));
 
         // 3. 좌석 상태 변경 (이미 RESERVED 인 경우 IllegalStateException 발생)
         seat.reserve();

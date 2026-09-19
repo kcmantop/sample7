@@ -28,6 +28,8 @@ public class ViewController {
 
     @GetMapping("/reservation/{performanceId}")
     public String reservationPage(@PathVariable Long performanceId, Model model) {
+    	System.out.println("---81");
+    	
         model.addAttribute("performanceId", performanceId);
         return "reservation";
     }

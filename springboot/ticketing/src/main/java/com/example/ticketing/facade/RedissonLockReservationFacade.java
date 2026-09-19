@@ -7,6 +7,7 @@ import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Component;
 
 import com.example.ticketing.domain.Users;
+import com.example.ticketing.dto.ReservationDto;
 import com.example.ticketing.service.PessimisticReservationService;
 
 import lombok.RequiredArgsConstructor;
@@ -17,7 +18,9 @@ public class RedissonLockReservationFacade {
     private final RedissonClient redissonClient;
     private final PessimisticReservationService reservationService;
 
-    public void reserve(Long seatId, Users user) {
+    public ReservationDto.Response reserve(Long seatId, Users user) {
+    	ReservationDto.Response response;
+    	
         RLock lock = redissonClient.getLock("lock:seat:" + seatId);
 
         try {
@@ -25,7 +28,7 @@ public class RedissonLockReservationFacade {
             if (!available) {
                 throw new IllegalStateException("락 획득 실패");
             }
-            reservationService.reserve(seatId, user);
+            response = reservationService.reserve(seatId, user);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         } finally {
@@ -33,5 +36,13 @@ public class RedissonLockReservationFacade {
                 lock.unlock();
             }
         }
+        
+        response = ReservationDto.Response.builder()
+        	    .reservationId(0L)
+        	    .seatNumber("")
+        	    .userId(0L)
+        	    .build();
+        
+        return response;
     }
 }

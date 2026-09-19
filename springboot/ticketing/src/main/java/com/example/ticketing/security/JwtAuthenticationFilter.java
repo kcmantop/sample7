@@ -28,19 +28,27 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String token = resolveToken(request);
 
-        if (StringUtils.hasText(token) && jwtProvider.validateToken(token)) {
-            Long userId = jwtProvider.getUserId(token);
-            String role = jwtProvider.getRole(token);
-
-            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                    userId,
-                    null,
-                    Collections.singletonList(new SimpleGrantedAuthority(role))
-            );
-            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-        }
+//        if (StringUtils.hasText(token)) {
+//        	if(jwtProvider.validateToken(token)) {        
+//	            Long userId = jwtProvider.getUserId(token);
+//	            String role = jwtProvider.getRole(token);
+//	
+//	            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+//	                    userId,
+//	                    null,
+//	                    Collections.singletonList(new SimpleGrantedAuthority(role))
+//	            );
+//	            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+//	
+//	            SecurityContextHolder.getContext().setAuthentication(authentication);
+//        	}
+//        	else {
+//        		System.out.println("[DEBUG] JWT 토큰 검증 실패: 토큰이 만료되었거나 서명이 유효하지 않음");
+//        	}
+//        }
+//        else {
+//        	System.out.println("[DEBUG] Authorization 헤더에 토큰이 존재하지 않음");
+//        }
 
         filterChain.doFilter(request, response);
     }
@@ -51,5 +59,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return bearerToken.substring(7);
         }
         return null;
+    }
+    
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        String path = request.getRequestURI();
+        // ⭕ 아래 경로로 들어오는 요청은 JWT 검증 필터를 건너뜀
+        return path.startsWith("/api/auth/") || 
+               path.startsWith("/api/reservations") || 
+               path.startsWith("/reservation/");
     }
 }
